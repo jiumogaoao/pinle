@@ -29,3 +29,6 @@ var socket = io("http://192.168.1.139:8888");
         socket.on('config',function(data){
             console.log(data)
         })
+        socket.on('type',function(data){
+            console.log(data)
+        })
