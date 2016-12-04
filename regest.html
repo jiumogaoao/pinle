@@ -49,12 +49,19 @@
             <div id="main">
             	<div class="space"></div>
             	<div class="input_module">
-            		<input ng-model="data.userName" placeholder="name" />
+            		<input ng-model="data.userName" placeholder="userName" />
             	</div>
+                <div class="input_module">
+                    <input ng-model="data.phone" placeholder="phone" />
+                </div>
             	<div class="input_module">
             		<input ng-model="data.key" placeholder="key" type="password"/>
             	</div>
-            	<button class="buttonL" ng-click="send()">登录</button>
+                <div class="input_module">
+                    <input ng-model="data.key2" placeholder="key" type="password"/>
+                </div>
+
+            	<button class="buttonL" ng-click="send()">注册</button>
             </div>
         </div>
         <div class="clear"></div>
@@ -69,7 +76,7 @@
                     $scope.$apply();
                 }
                 //数据
-                $scope.data={userName:"",key:""};
+                $scope.data={userName:"",key:"",key2:"",phone:""};
                 $timeout(function(){
                    $scope.getH = document.getElementById('all').clientHeight*$scope.scale; 
                 },300);
@@ -91,12 +98,12 @@
 		        socket.on('err',function(data){
 		            alert(data.errDsc);
 		        });
-		        socket.on('login',function(data){
+		        socket.on('regest',function(data){
 		        	window.location.href="nav.html";
 		        })
 		        //action
 		        $scope.send=function(){
-		        	socket.emit('server',{model:'user',action:'login',data:$scope.data});
+		        	socket.emit('server',{model:'user',action:'regest',data:$scope.data});
 		        };
             }]);
 
