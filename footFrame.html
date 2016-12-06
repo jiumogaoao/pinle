@@ -43,34 +43,11 @@
     <body style="height: {{getH}}px;">
         <div id="all" style="-webkit-transform:scale({{scale}});transform:scale({{scale}});">
             <div id="main">
-            	<div class="space"></div>
-                <div class="top">
-                    <div class="navFrame">
-                        <div class="nav" ng-click="changeType(0)">全部</div>
-                        <div class="nav" ng-repeat="n in type.subType track by $index" ng-click="changeType(n.id)">{{n.name}} 
-                        </div>
-                    </div>
-                </div>
-            	<div class="bottom">
-                    <div class="good" ng-repeat="n in data track by $index" ng-click="goDetai(n._id)">
-                        <img ng-src="n.icon" class="left"/>
-                        <div class="center">
-                            <div class="title">{{n.name}}</div>
-                            <div class="dsc">{{n.dsc}}</div>
-                            <div class="clear"></div>
-                            <div class="count">{{n.count}}</div>
-                            <div class="shellCount">{{n.shellCount}}</div>
-                            <div class="clear"></div>
-                        </div>
-                        <div class="right">
-                            <div class="price">{{n.price}}</div>
-                            <div class="shopName">{{n.shopName}}</div>
-                            <button class="toCart" ng-click="toCart(n.id)">添加购物车</button>
-                        </div>
-                        <div class="clear"></div>
-                    </div>   
-                </div>
-
+            	<div class="footNav">商城</div>
+                <div class="footNav">购物车</div>
+                <div class="footNav">交易</div>
+                <div class="footNav">我的</div>
+                <div class="clear"></div>
             </div>
         </div>
         <div class="clear"></div>
@@ -85,8 +62,6 @@
                     $scope.$apply();
                 }
                 //数据
-                $scope.type=[];
-                $scope.typeChoose=0;
                 $scope.data=[];
                 $timeout(function(){
                    $scope.getH = document.getElementById('all').clientHeight*$scope.scale; 
@@ -98,7 +73,6 @@
 		            if(localStorage.getItem('tk')){
 		                socket.emit('tk',{tk:localStorage.getItem('tk')});
 		            }
-                    socket.emit('server',{model:"good",action:"get",data:{type:localStorage.getItem('type')}})
 		        });
 		        socket.on('tk',function(data){
 		            if(data.tk){
@@ -107,46 +81,18 @@
 		                localStorage.removeItem('tk');
 		            }
 		        });
-                socket.on('good',function(data){
-                    $scope.good=data;
-                    $scope.changeType($scope.typeChoose);
-                });
 		        socket.on('err',function(data){
 		            alert(data.errDsc);
 		        });
                 socket.on('type',function(data){
                     console.log(data)
-                    for (var i=0;i<data.length;i++){
-                        if(data[i]._id=localStorage.getItem('type')){
-                            $scope.type=data[i];
-                        }
-                    }
+                    $scope.data=data;
                 });
 		        //action
-                $scope.changeType=function(type){
-                    if(type){
-                       $scope.data=[];
-                       for(var i=0;i<$scope.good.length;i++){
-                        if($scope.good[i].subType==type){
-                            $scope.data.push($scope.good[i]);
-                        }
-                    } 
-                }else{
-                    $scope.data=$scope.good;
-                }
-                    $scope.$apply();
-                }
-		        $scope.goDetai=function(id){
-		        	localStorage.setItem('good',id);
-                    window.location.href="good.html";
+		        $scope.go=function(id){
+		        	localStorage.setItem('type',id);
+                    window.location.href="type.html";
 		        };
-                $scope.toCart=function(id){
-                    for(var i=0;i<$scope.good.length;i++){
-                        if($scope.good[i]._id==id){
-                           socket.emit('server',{model:"express",action:"addShoppingCart",data:$scope.good[i]}) 
-                        }
-                    }      
-                }
             }]);
 
         </script>
