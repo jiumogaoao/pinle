@@ -19,8 +19,39 @@
         <div id="all" style="-webkit-transform:scale({{scale}});transform:scale({{scale}});">
             <div id="main">
             	<div class="space"></div>
-                
-
+                <div class="group" ng-repeat="(groupID,group) in data track by $index">
+                    <div class="groupTop">
+                        <checkbox ng-model="group.payCheck"></checkbox>
+                        <div class="groupTitle">
+                            {{$scope.good["ID_"+group.good[0]].shopName}}
+                        </div>    
+                    </div>
+                    <div class="good" ng-repeat="n in group.good track by $index">
+                        <checkbox ng-model="n.payCheck"></checkbox>
+                        <img ng-src="n.icon" class="left"/>
+                        <div class="center">
+                            <div class="title">{{n.name}}</div>
+                            <div class="dsc">{{n.dsc}}</div>
+                            <div class="clear"></div>
+                            <div class="overplus">{{n.overplus}}</div>
+                            <div class="shellCount">{{n.shellCount}}</div>
+                            <div class="clear"></div>
+                        </div>
+                        <div class="right">
+                            <div class="price">{{n.price}}</div>
+                            <div class="shopName">{{n.shopName}}</div>
+                            <div class="countFrame">
+                                <button ng-click="sub(n._id)">-</button>
+                                <input ng-model="n.count"/>
+                                <button ng-click="add(n._id)">+</button>
+                                <div class="clear"></div>
+                            </div>
+                            <button ng-click="paySingle(n._id)">直接购买</button>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+                <button ng-click="pay">购买</button>
             </div>
         </div>
         <div class="clear"></div>
@@ -36,6 +67,7 @@
                 }
                 //数据
                 $scope.buyList={};
+                $scope.goodID=[];
                 $scope.good={};
                 $scope.data={};
                 $scope.config={};
@@ -53,9 +85,14 @@
 		        socket.on('tk',function(data){
 		            if(data.tk){
 		                localStorage.setItem('tk',data.tk);
-                        for(){}
-                        $scope.data=data.user.shoppingCart;
-                        socket.emit('server',{model:'good',action:'search',data:data.user.shoppingCart});
+                        for(var i=0;i<=data.user.shoppingCart.length;i++){
+                            $scope.goodID.push(data.user.shoppingCart[i]._id);
+                            if(!$scope.data[data.user.shoppingCart[i].shop]){
+                                $scope.data[data.user.shoppingCart[i].shop]={payCheck:false,good:[]};
+                            }
+                            $scope.data[data.user.shoppingCart[i].shop].push(data.user.shoppingCart[i]._id);
+                        }
+                        socket.emit('server',{model:'good',action:'search',data:$scope.goodID});
 		            }else{
 		                localStorage.removeItem('tk');
 		            }
@@ -67,6 +104,7 @@
                     for(var i=0;i<data.length;i++){
                         $scope.good["ID_"+data[i]._id]=data[i];
                         $scope.good["ID_"+data[i]._id].count=0;
+                        $scope.good["ID_"+data[i]._id].payCheck=false;
                     }
                 });
 		        //action
