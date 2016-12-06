@@ -1,0 +1,83 @@
+<html ng-app="app" ng-controller="controller">
+    <head>
+        <meta charset="utf-8">
+            <meta name="format-detection" content="telephone=no">
+                <meta name="msapplication-tap-highlight" content="no">
+                    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+                        <title></title>
+                            <link href="css/main.css" rel="stylesheet" rev="stylesheet" type="text/css">
+                                <script type="text/javascript" src="js/angular.min.js"></script>
+                                <script type="text/javascript" src="js/angular-touch.min.js"></script>
+                                <style type="text/css">
+                                		.space{
+                                			width: 1px;
+                                			height: 1px;
+                                		}
+                                </style>
+    </head>
+    <body style="height: {{getH}}px;">
+        <div id="all" style="-webkit-transform:scale({{scale}});transform:scale({{scale}});">
+            <div id="main">
+            	<div class="space"></div>
+                
+
+            </div>
+        </div>
+        <div class="clear"></div>
+        <script type="text/javascript" src="js/socketIo.js"></script>
+        <script type="text/javascript">
+            angular.module('app', []).controller('controller', ['$scope','$window','$timeout',function($scope,$window,$timeout) {
+                //自适应用
+                $scope.scale = $window.innerWidth/750;
+                $window.onresize=function(){
+                   $scope.scale = $window.innerWidth/750;
+                    $scope.getH = document.getElementById('all').clientHeight*$scope.scale;
+                    $scope.$apply();
+                }
+                //数据
+                $scope.buyList={};
+                $scope.good={};
+                $scope.data={};
+                $scope.config={};
+                $timeout(function(){
+                   $scope.getH = document.getElementById('all').clientHeight*$scope.scale; 
+                },300);
+                //socket
+                var socket = io("http://192.168.1.105:8888");
+                socket.on('connected', function (data) {
+		            console.log(data);
+		            if(localStorage.getItem('tk')){
+		                socket.emit('tk',{tk:localStorage.getItem('tk')});
+		            }
+		        });
+		        socket.on('tk',function(data){
+		            if(data.tk){
+		                localStorage.setItem('tk',data.tk);
+                        for(){}
+                        $scope.data=data.user.shoppingCart;
+                        socket.emit('server',{model:'good',action:'search',data:data.user.shoppingCart});
+		            }else{
+		                localStorage.removeItem('tk');
+		            }
+		        });
+		        socket.on('err',function(data){
+		            alert(data.errDsc);
+		        });
+                socket.on('goodSearch',function(data){
+                    for(var i=0;i<data.length;i++){
+                        $scope.good["ID_"+data[i]._id]=data[i];
+                        $scope.good["ID_"+data[i]._id].count=0;
+                    }
+                });
+		        //action
+		        $scope.change=function(){
+		        	socket.emit('server',{model:'user',action:'login',data:$scope.data});
+		        };
+                $scope.appPlace=function(){
+                    $scope.data.place.push({provinceID:"",cityID:""});
+                }
+            }]);
+
+        </script>
+    </body>
+</html>
