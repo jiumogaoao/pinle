@@ -19,9 +19,16 @@
         <div id="all" style="-webkit-transform:scale({{scale}});transform:scale({{scale}});">
             <div id="main">
             	<div class="space"></div>
+                <div class="placeFrme">
+                    <select ng-model="place">
+                        <option ng-repeat="n in placeOption track by $index" value="{{$index}}">{{$scope.config.provinceID[n.provinceID].name}} {{$scope.config.cityID[n.cityID].name}}</option>
+                    </select>
+                    <input {{name}}/>
+                    <input {{phone}}/>
+                </div>
                 <div class="group" ng-repeat="(groupID,group) in data track by $index">
                     <div class="groupTop">
-                        <checkbox ng-model="group.payCheck"></checkbox>
+                        <checkbox ng-model="group.payCheck" ng-change="changeGroup(groupID)"></checkbox>
                         <div class="groupTitle">
                             {{$scope.good["ID_"+group.good[0]].shopName}}
                         </div>    
@@ -51,7 +58,7 @@
                         <div class="clear"></div>
                     </div>
                 </div>
-                <button ng-click="pay">购买</button>
+                <button ng-click="pay()">购买</button>
             </div>
         </div>
         <div class="clear"></div>
@@ -66,11 +73,18 @@
                     $scope.$apply();
                 }
                 //数据
+                $scope.config={};
                 $scope.buyList={};
                 $scope.goodID=[];
                 $scope.good={};
                 $scope.data={};
                 $scope.config={};
+                $scope.place=0;
+                $scope.placeOption=[];
+                $scope.name="";
+                $scope.phone="";
+                $scope.buyCount=0;
+                $scope.buyID=[];
                 $timeout(function(){
                    $scope.getH = document.getElementById('all').clientHeight*$scope.scale; 
                 },300);
@@ -82,6 +96,9 @@
 		                socket.emit('tk',{tk:localStorage.getItem('tk')});
 		            }
 		        });
+                socket.on('config', function (data) {
+                    $scope.config=data;
+                });
 		        socket.on('tk',function(data){
 		            if(data.tk){
 		                localStorage.setItem('tk',data.tk);
@@ -92,6 +109,9 @@
                             }
                             $scope.data[data.user.shoppingCart[i].shop].push(data.user.shoppingCart[i]._id);
                         }
+                        $scope.placeOption=data.user.place;
+                        $scope.phone=data.user.phone;
+                        $scope.name=data.user.name;
                         socket.emit('server',{model:'good',action:'search',data:$scope.goodID});
 		            }else{
 		                localStorage.removeItem('tk');
@@ -107,12 +127,52 @@
                         $scope.good["ID_"+data[i]._id].payCheck=false;
                     }
                 });
+                socket.on('buyAdd',function(data){
+                    $scope.buyID.push(data._id);
+                    if($scope.buyID.length==$scope.buyCount){
+                        window.location.href="express.html";
+                    }
+                });
 		        //action
-		        $scope.change=function(){
-		        	socket.emit('server',{model:'user',action:'login',data:$scope.data});
+		        $scope.changeGroup=function(groupID){
+		        	for(var i in $scope.good){
+                        if($scope.good[i].shop==groupID){
+                            $scope.good[i].payCheck=$scope.data[groupID].payCheck
+                        }
+                    }
 		        };
-                $scope.appPlace=function(){
-                    $scope.data.place.push({provinceID:"",cityID:""});
+                $scope.sub=function(id){
+                    if($scope.good["ID_"+id].count>=1){
+                        $scope.good["ID_"+id].count--;
+                    }
+                }
+                $scope.add=function(id){
+                    if($scope.good["ID_"+id].count<=$scope.good["ID_"+id].overplus-1){
+                        $scope.good["ID_"+id].count++;
+                    }
+                }
+                $scope.paySingle=function(id){
+                    $scope.buyID=[];
+                    $scope.buyCount=1;
+                    var payData={goodList:[$scope.good["ID_"+id]],provinceID:$scope.placeOption[$scope.place].provinceID,cityID:$scope.placeOption[$scope.place].cityID,name:$scope.name,phone:$scope.phone}
+                    socket.emit('server',{model:'express',action:'add',data:payData});
+                }
+                $scope.pay=function(){
+                    $scope.buyID=[];
+                    $scope.buyCount=0;
+                    var payLise={};
+                    for(i in $scope.good){
+                        if($scope.good[i].payCheck){
+                            if(!payLise[$scope.good[i].shop]){
+                                $scope.buyCount++;
+                                payLise[$scope.good[i].shop]=[];
+                            }
+                            payLise[$scope.good[i].shop].push($scope.good[i]);
+                        }
+                    }
+                    for(i in payLise){
+                        socket.emit('server',{model:'express',action:'add',data:{goodList:payLise[i],provinceID:$scope.placeOption[$scope.place].provinceID,cityID:$scope.placeOption[$scope.place].cityID,name:$scope.name,phone:$scope.phone}});
+                    }
                 }
             }]);
 
