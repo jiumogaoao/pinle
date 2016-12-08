@@ -19,7 +19,41 @@
         <div id="all" style="-webkit-transform:scale({{scale}});transform:scale({{scale}});">
             <div id="main">
             	<div class="space"></div>
-
+                <div class="express" ng-repeat="n in data track by $index">
+                    <div class="expressTop">
+                        <div class="title">{{n.goodList[0].shopName}}</div>
+                        <div class="price">{{n.total}}</div>
+                        <div class="type">{{config.expressState[n.state].name}}</div>
+                        <button ng-if="n.state==0&&user._id==n.user" ng-click="pay(n._id)">支付</button>
+                        <button ng-if="n.state==0" ng-click="cancel(n._id)">取消</button>
+                        <button ng-if="n.state==1&&user._id==n.shop" ng-click="send(n._id)">发货</button>
+                        <button ng-if="n.state==3&&user._id==n.user" ng-click="check(n._id)">确认收货</button>
+                        <button ng-if="n.state==4&&user._id==n.user" ng-click="back(n._id)">申请退货</button>
+                        <button ng-if="n.state==5&&user._id==n.shop" ng-click="backCheck(n._id)">确认退货</button>
+                    </div>
+                    <div class="expressCenter">
+                        <div class="good" ng-repeat="m in n.goodList track by $index">
+                            <img ng-src="m.icon" class="left"/>
+                            <div class="center">
+                                <div class="title">{{m.name}}</div>
+                                <div class="dsc">{{m.dsc}}</div>
+                                <div class="clear"></div>
+                                <div class="overplus">{{m.overplus}}</div>
+                                <div class="shellCount">{{m.shellCount}}</div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="right">
+                                <div class="price">{{m.price}}</div>
+                                <div class="count">{{m.count}}</div>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                    <div class="expressBottom">
+                        <div class="expressName">{{m.expressCompany}}</div>
+                        <div class="expressLog" ng-repeat="m in n.stateList track by $index">{{m}}</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="clear"></div>
@@ -34,6 +68,7 @@
                     $scope.$apply();
                 }
                 //数据
+                $scope.user={}
                 $scope.data={};
                 $scope.config={};
                 $timeout(function(){
@@ -53,6 +88,7 @@
 		        socket.on('tk',function(data){
 		            if(data.tk){
 		                localStorage.setItem('tk',data.tk);
+                        $scope.user=data.user;
 		            }else{
 		                localStorage.removeItem('tk');
 		            }
@@ -64,12 +100,24 @@
 		            alert(data.errDsc);
 		        });
 		        //action
-		        $scope.change=function(){
-		        	socket.emit('server',{model:'user',action:'login',data:$scope.data});
+		        $scope.pay=function(id){
+		        	socket.emit('server',{model:'express',action:'pay',data:{_id:id}});
 		        };
-                $scope.appPlace=function(){
-                    $scope.data.place.push({provinceID:"",cityID:""});
-                }
+                $scope.cancel=function(id){
+                    socket.emit('server',{model:'express',action:'cancel',data:{_id:id}});
+                };
+                $scope.send=function(id){
+                    socket.emit('server',{model:'express',action:'send',data:{_id:id}});
+                };
+                $scope.check=function(id){
+                    socket.emit('server',{model:'express',action:'check',data:{_id:id}});
+                };
+                $scope.back=function(id){
+                    socket.emit('server',{model:'express',action:'back',data:{_id:id}});
+                };
+                $scope.backCheck=function(id){
+                    socket.emit('server',{model:'express',action:'backCheck',data:{_id:id}});
+                };
             }]);
 
         </script>
